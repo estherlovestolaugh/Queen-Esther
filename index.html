@@ -304,12 +304,43 @@ function addDays(d,n){ const nd=new Date(d); nd.setDate(nd.getDate()+n); return 
 function fmt(d, opts){ return d.toLocaleDateString('en-SG', opts); }
 function todayStr(){ return isoDate(new Date()); }
 
-/* ---------- API ---------- */
+/* ---------- API (JSONP — Apps Script doesn't reliably support fetch()/CORS) ---------- */
+let _jsonpCounter = 0;
 function api(action, params={}){
-  const url = new URL(SCRIPT_URL);
-  url.searchParams.set('action', action);
-  Object.entries(params).forEach(([k,v])=>url.searchParams.set(k, v==null?'':v));
-  return fetch(url.toString()).then(r=>r.json());
+  return new Promise((resolve, reject)=>{
+    const cbName = 'jsonp_cb_' + (_jsonpCounter++) + '_' + Date.now();
+    const url = new URL(SCRIPT_URL);
+    url.searchParams.set('action', action);
+    Object.entries(params).forEach(([k,v])=>url.searchParams.set(k, v==null?'':v));
+    url.searchParams.set('callback', cbName);
+
+    const script = document.createElement('script');
+    let settled = false;
+    const cleanup = ()=>{
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+    };
+    const timer = setTimeout(()=>{
+      if(settled) return;
+      settled = true; cleanup();
+      reject(new Error('Request timed out'));
+    }, 15000);
+
+    window[cbName] = (data)=>{
+      if(settled) return;
+      settled = true;
+      clearTimeout(timer); cleanup();
+      resolve(data);
+    };
+    script.onerror = ()=>{
+      if(settled) return;
+      settled = true;
+      clearTimeout(timer); cleanup();
+      reject(new Error('Could not reach the script'));
+    };
+    script.src = url.toString();
+    document.body.appendChild(script);
+  });
 }
 function setSync(mode){
   const dot=document.getElementById('syncDot'), txt=document.getElementById('syncText');
