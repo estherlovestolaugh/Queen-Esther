@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Esther's Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF7F2;
+    --surface:#FFFFFF;
+    --surface-2:#F2EEE6;
+    --ink:#2B2926;
+    --ink-soft:#7A756D;
+    --ink-faint:#B3ADA2;
+    --border:#E8E2D8;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow:0 1px 2px rgba(43,41,38,.06), 0 4px 14px rgba(43,41,38,.05);
+
+    --c-itel:#5B7FA6;
+    --c-lad:#C1694F;
+    --c-medihub:#3F8F8A;
+    --c-lcc:#8B5E83;
+    --c-family:#C99A3E;
+    --c-personal:#6B8F5C;
+    --c-ministry:#B5657A;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:40px;
+  }
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+
+  .app{max-width:1100px;margin:0 auto;padding:18px 16px 0;}
+
+  /* Topbar */
+  .topbar{display:flex;flex-wrap:wrap;align-items:center;gap:14px;justify-content:space-between;margin-bottom:14px;}
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand h1{font-size:22px;letter-spacing:.2px;}
+  .brand .today{color:var(--ink-soft);font-size:13px;}
+  .sync-status{font-size:11px;color:var(--ink-faint);display:flex;align-items:center;gap:5px;}
+  .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);}
+  .sync-dot.busy{background:#C99A3E;animation:pulse 1s infinite;}
+  .sync-dot.err{background:#B5657A;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  .topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+
+  .tabs{display:flex;gap:2px;background:var(--surface-2);padding:3px;border-radius:999px;}
+  .tabs button{background:none;border:none;padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-soft);}
+  .tabs button.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);}
+
+  .view-toggle{display:flex;gap:2px;background:var(--surface-2);padding:3px;border-radius:999px;}
+  .view-toggle button{background:none;border:none;padding:7px 12px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-soft);}
+  .view-toggle button.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);}
+
+  .btn-primary{background:var(--ink);color:var(--surface);border:none;padding:9px 16px;border-radius:999px;font-size:13px;font-weight:600;}
+  .btn-primary:active{opacity:.85;}
+
+  /* Legend */
+  .demo-banner{background:#F2EAD8;color:#7A6A3F;border:1px solid #E4D4A8;border-radius:var(--radius-sm);padding:9px 14px;font-size:12.5px;margin-bottom:14px;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:10px 16px;padding:10px 2px 16px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft);}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none;}
+
+  /* Nav strip */
+  .nav-strip{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .nav-strip button.round{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface);font-size:14px;color:var(--ink-soft);}
+  .nav-strip .range-label{font-size:14px;font-weight:600;font-family:'Fraunces',serif;}
+  .nav-strip .today-btn{margin-left:auto;font-size:12px;color:var(--ink-soft);background:none;border:1px solid var(--border);padding:5px 10px;border-radius:999px;}
+
+  /* Agenda view */
+  .agenda-group{margin-bottom:22px;}
+  .agenda-group-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);font-weight:700;margin-bottom:8px;}
+  .agenda-group-title.overdue{color:var(--c-ministry);}
+  .agenda-day{margin-bottom:16px;}
+  .agenda-day-header{font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+
+  .task-card{
+    display:flex;align-items:flex-start;gap:10px;
+    background:var(--surface);border:1px solid var(--border);
+    border-left:4px solid var(--card-color,var(--ink-faint));
+    border-radius:var(--radius-sm);
+    padding:10px 12px;margin-bottom:7px;
+    box-shadow:var(--shadow);
+    touch-action:none;
+  }
+  .task-card.done{opacity:.5;}
+  .task-card.done .task-title{text-decoration:line-through;}
+  .task-check{
+    width:19px;height:19px;border-radius:50%;border:2px solid var(--card-color,var(--ink-faint));
+    flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;background:var(--surface);
+  }
+  .task-check.done{background:var(--card-color,var(--ink-faint));}
+  .task-check svg{width:11px;height:11px;stroke:white;fill:none;stroke-width:3;display:none;}
+  .task-check.done svg{display:block;}
+  .event-marker{width:13px;height:13px;background:var(--card-color,var(--ink-faint));transform:rotate(45deg);border-radius:3px;flex:none;margin-top:4px;}
+  .task-card.event-card{border-left-style:dashed;}
+  .task-body{flex:1;min-width:0;}
+  .task-title{font-size:14px;font-weight:600;line-height:1.35;}
+  .task-meta{font-size:11.5px;color:var(--ink-soft);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;}
+  .task-meta .area-tag{font-weight:600;color:var(--card-color);}
+  .task-notes{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+  .task-actions{display:flex;gap:6px;flex:none;}
+  .icon-btn{background:none;border:none;color:var(--ink-faint);font-size:14px;padding:2px 4px;}
+  .icon-btn:hover{color:var(--ink);}
+
+  .empty-note{color:var(--ink-faint);font-size:13px;padding:20px 4px;}
+
+  /* Week / Month grid */
+  .grid-wrap{overflow-x:auto;padding-bottom:6px;}
+  .week-grid{display:grid;grid-template-columns:repeat(7,minmax(140px,1fr));gap:8px;min-width:760px;}
+  .day-col{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);min-height:220px;padding:8px;display:flex;flex-direction:column;gap:6px;}
+  .day-col.today{border-color:var(--ink);}
+  .day-col.drop-target{background:var(--surface-2);border-color:var(--ink);}
+  .day-col-head{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;}
+  .day-col-head .num{font-family:'Fraunces',serif;font-size:16px;color:var(--ink);display:block;font-weight:600;}
+  .mini-card{
+    background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--card-color,var(--ink-faint));
+    border-radius:6px;padding:5px 7px;font-size:11.5px;line-height:1.3;touch-action:none;
+  }
+  .mini-card.done{opacity:.45;text-decoration:line-through;}
+  .mini-card b{display:block;font-size:12px;}
+
+  .month-grid{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:6px;min-width:760px;}
+  .month-grid .day-col{min-height:100px;}
+  .month-grid .day-col.other-month{opacity:.4;}
+
+  .drag-ghost{position:fixed;pointer-events:none;z-index:999;opacity:.9;transform:translate(-50%,-50%) rotate(-2deg);box-shadow:0 8px 24px rgba(0,0,0,.2);width:180px;}
+
+  /* Meals */
+  .meal-grid{overflow-x:auto;}
+  .meal-table{display:grid;grid-template-columns:70px repeat(7,minmax(130px,1fr));gap:6px;min-width:900px;}
+  .meal-row-label{display:flex;align-items:center;font-size:12px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;}
+  .meal-day-head{font-size:11px;font-weight:700;color:var(--ink-soft);text-align:center;padding:6px 0;}
+  .meal-day-head .num{font-family:'Fraunces',serif;font-size:15px;color:var(--ink);display:block;}
+  .meal-cell{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;min-height:56px;font-size:12.5px;display:flex;flex-direction:column;justify-content:center;gap:2px;}
+  .meal-cell.filled{border-color:var(--c-family);}
+  .meal-cell .placeholder{color:var(--ink-faint);}
+  .meal-cell b{font-weight:600;}
+  .meal-cell .mnotes{color:var(--ink-soft);font-size:11px;}
+
+  .sub-section{margin-top:28px;}
+  .sub-section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .sub-section-header h3{font-size:16px;}
+  .shopping-item{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:6px;}
+  .shopping-item .item-text{flex:1;font-size:13.5px;}
+  .shopping-item.checked .item-text{text-decoration:line-through;color:var(--ink-faint);}
+  .favorite-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--c-family);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:7px;position:relative;}
+  .favorite-card b{font-size:14px;font-weight:600;}
+  .quick-add-row{display:flex;gap:8px;margin-top:8px;}
+  .quick-add-row input{flex:1;padding:9px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);}
+  .quick-add-row-2{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+  .quick-add-row-2 input{flex:1;min-width:120px;padding:9px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);}
+
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(43,41,38,.35);display:none;align-items:center;justify-content:center;padding:16px;z-index:1000;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border-radius:var(--radius);padding:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+  .modal h3{font-size:17px;margin-bottom:14px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;}
+  .field input,.field select,.field textarea{
+    width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--bg);color:var(--ink);
+  }
+  .field textarea{resize:vertical;min-height:50px;}
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .area-picker{display:flex;flex-wrap:wrap;gap:6px;}
+  .area-chip{border:1.5px solid var(--border);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;background:var(--surface);}
+  .area-chip.selected{border-color:var(--chip-color);background:color-mix(in srgb, var(--chip-color) 12%, white);}
+  .modal-actions{display:flex;justify-content:space-between;align-items:center;margin-top:16px;}
+  .btn-secondary{background:none;border:1px solid var(--border);padding:9px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-soft);}
+  .btn-danger{background:none;border:none;color:var(--c-lad);font-size:12px;font-weight:600;}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--surface);padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;transition:all .25s ease;pointer-events:none;z-index:1100;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:700px){
+    .topbar{flex-direction:column;align-items:stretch;}
+    .topbar-right{justify-content:space-between;}
+    .brand{justify-content:space-between;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <h1>Esther's Dashboard</h1>
+      <span class="today" id="todayLabel"></span>
+    </div>
+    <div class="topbar-right">
+      <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span id="syncText">Synced</span></div>
+      <div class="tabs" id="tabToggle">
+        <button data-tab="tasks" class="active">Calendar</button>
+        <button data-tab="meals">Meal Planning</button>
+      </div>
+      <button class="btn-secondary" id="timerBtn">⏱ <span id="timerBadge"></span></button>
+      <button class="btn-primary" id="addBtn">+ Add</button>
+    </div>
+  </div>
+
+  <div class="demo-banner" id="demoBanner" style="display:none">Showing example data — Google Sheets can't be reached from this preview window. Open dashboard.html directly in Safari or Chrome (not through this chat) to sync with your real Sheet.</div>
+
+  <div class="legend" id="legend"></div>
+
+  <div id="tasksPanel">
+    <div class="nav-strip" id="taskNav">
+      <div class="view-toggle" id="viewToggle">
+        <button data-view="agenda" class="active">Agenda</button>
+        <button data-view="week">Week</button>
+        <button data-view="month">Month</button>
+        <button data-view="braindump">Brain Dump</button>
+      </div>
+      <button class="round" id="prevBtn" style="display:none">‹</button>
+      <span class="range-label" id="rangeLabel" style="display:none"></span>
+      <button class="round" id="nextBtn" style="display:none">›</button>
+      <button class="today-btn" id="todayBtn" style="display:none">Today</button>
+    </div>
+    <div id="tasksContent"></div>
+  </div>
+
+  <div id="mealsPanel" style="display:none">
+    <div class="nav-strip">
+      <button class="round" id="mealPrevBtn">‹</button>
+      <span class="range-label" id="mealRangeLabel"></span>
+      <button class="round" id="mealNextBtn">›</button>
+      <button class="today-btn" id="mealTodayBtn">This week</button>
+    </div>
+    <div class="meal-grid"><div class="meal-table" id="mealTable"></div></div>
+
+    <div class="sub-section">
+      <div class="sub-section-header"><h3>Things to Buy</h3></div>
+      <div id="shoppingList"></div>
+      <div class="quick-add-row">
+        <input type="text" id="shoppingInput" placeholder="Add an item…">
+        <button class="btn-secondary" id="shoppingAddBtn">Add</button>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <div class="sub-section-header"><h3>Meals We Love</h3></div>
+      <div id="favoritesList"></div>
+      <div class="quick-add-row-2">
+        <input type="text" id="favoriteMealInput" placeholder="Meal name">
+        <input type="text" id="favoriteNotesInput" placeholder="Notes (optional)">
+        <button class="btn-secondary" id="favoriteAddBtn">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw37Grl3mVUqPvt0bJXh9_bZytbJYNmIS-kH4rmJX3HVztYhVvvNtok8o7gFUd009pQ/exec";
+
+const AREAS = [
+  {id:'ITEL', var:'--c-itel'},
+  {id:'LAD', var:'--c-lad'},
+  {id:'Medihub', var:'--c-medihub'},
+  {id:'LCC', var:'--c-lcc'},
+  {id:'Family', var:'--c-family'},
+  {id:'Personal', var:'--c-personal'},
+  {id:'Ministry', var:'--c-ministry'},
+];
+function areaColor(areaId){
+  const a = AREAS.find(a=>a.id===areaId);
+  return a ? getComputedStyle(document.documentElement).getPropertyValue(a.var).trim() : '#B3ADA2';
+}
+
+const DEMO_TASKS = [
+  {id:'d1', title:'Reconcile SSG grant Q2', area:'ITEL', type:'deadline', date:'2026-07-27', time:'', notes:'Waiting on Andy\'s figures', status:'not done'},
+  {id:'d2', title:'Extingel supplier follow-up', area:'LAD', type:'task', date:'2026-07-29', time:'', notes:'', status:'not done'},
+  {id:'d3', title:'Send Medihub catalogue draft to Leslie', area:'Medihub', type:'task', date:'2026-07-30', time:'', notes:'', status:'not done'},
+  {id:'d4', title:'Older girl\'s spelling test', area:'Family', type:'event', date:'2026-07-30', time:'08:00', notes:'', status:'not done'},
+  {id:'d5', title:'TGA distributor call (Australia)', area:'Medihub', type:'event', date:'2026-07-31', time:'10:00', notes:'Re: i-JECT ST sponsorship', status:'not done'},
+  {id:'d6', title:'Dentist appointment', area:'Personal', type:'event', date:'2026-08-01', time:'15:30', notes:'', status:'not done'},
+  {id:'d7', title:'Submit August worship roster', area:'LCC', type:'deadline', date:'2026-08-03', time:'', notes:'', status:'not done'},
+  {id:'d8', title:'Worship team practice', area:'Ministry', type:'event', date:'2026-08-02', time:'19:30', notes:'', status:'not done'},
+  {id:'d9', title:'FY25 audit prep review with Andy', area:'ITEL', type:'task', date:'2026-08-05', time:'', notes:'', status:'not done'},
+  {id:'d10', title:'Pay LAD Q2 invoices', area:'LAD', type:'deadline', date:'2026-07-25', time:'', notes:'', status:'done'},
+];
+const DEMO_MEALS = [
+  {id:'m1', date:'2026-07-27', mealType:'Dinner', meal:'Bak kut teh', notes:'Kids requested'},
+  {id:'m2', date:'2026-07-28', mealType:'Lunch', meal:'Leftover fried rice', notes:''},
+  {id:'m3', date:'2026-07-29', mealType:'Dinner', meal:'Steamed fish + choy sum', notes:''},
+  {id:'m4', date:'2026-07-30', mealType:'Lunch', meal:'Chicken rice takeaway', notes:''},
+  {id:'m5', date:'2026-08-01', mealType:'Dinner', meal:'Family steamboat night', notes:''},
+];
+
+let state = {
+  tasks: [], meals: [], focus: [], shopping: [], favorites: [],
+  tab: 'tasks', view: window.innerWidth < 700 ? 'agenda' : 'agenda',
+  weekAnchor: startOfWeek(new Date()),
+  monthAnchor: new Date(),
+  mealAnchor: startOfWeek(new Date()),
+};
+let timer = { running:false, startTs:0, accumMs:0, area:'Personal' };
+function timerElapsedMs(){ return timer.accumMs + (timer.running ? Date.now()-timer.startTs : 0); }
+function fmtDuration(ms){ const totalSec=Math.floor(ms/1000); const m=Math.floor(totalSec/60); const s=totalSec%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+setInterval(()=>{
+  const badge=document.getElementById('timerBadge');
+  if(badge) badge.textContent = timer.running ? fmtDuration(timerElapsedMs()) : '';
+  const disp=document.getElementById('timerDisplay');
+  if(disp) disp.textContent = fmtDuration(timerElapsedMs());
+}, 1000);
+
+/* ---------- date helpers ---------- */
+function pad(n){return n<10?'0'+n:''+n;}
+function isoDate(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function onlyDate(v){ if(!v) return ''; const s=String(v); return s.length>=10 ? s.slice(0,10) : s; }
+function toDateObj(dateStr){ if(!dateStr) return null; return new Date(dateStr+'T00:00:00'); }
+function startOfWeek(d){ const date=new Date(d); const day=date.getDay(); const diff=(day===0?-6:1-day); date.setDate(date.getDate()+diff); date.setHours(0,0,0,0); return date; }
+function addDays(d,n){ const nd=new Date(d); nd.setDate(nd.getDate()+n); return nd; }
+function fmt(d, opts){ return d.toLocaleDateString('en-SG', opts); }
+function todayStr(){ return isoDate(new Date()); }
+
+/* ---------- API (JSONP — Apps Script doesn't reliably support fetch()/CORS) ---------- */
+let _jsonpCounter = 0;
+function api(action, params={}){
+  return new Promise((resolve, reject)=>{
+    const cbName = 'jsonp_cb_' + (_jsonpCounter++) + '_' + Date.now();
+    const url = new URL(SCRIPT_URL);
+    url.searchParams.set('action', action);
+    Object.entries(params).forEach(([k,v])=>url.searchParams.set(k, v==null?'':v));
+    url.searchParams.set('callback', cbName);
+
+    const script = document.createElement('script');
+    let settled = false;
+    const cleanup = ()=>{
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+    };
+    const timer = setTimeout(()=>{
+      if(settled) return;
+      settled = true; cleanup();
+      reject(new Error('Request timed out'));
+    }, 15000);
+
+    window[cbName] = (data)=>{
+      if(settled) return;
+      settled = true;
+      clearTimeout(timer); cleanup();
+      resolve(data);
+    };
+    script.onerror = ()=>{
+      if(settled) return;
+      settled = true;
+      clearTimeout(timer); cleanup();
+      reject(new Error('Could not reach the script'));
+    };
+    script.src = url.toString();
+    document.body.appendChild(script);
+  });
+}
+function setSync(mode){
+  const dot=document.getElementById('syncDot'), txt=document.getElementById('syncText');
+  dot.className='sync-dot'+(mode==='busy'?' busy':mode==='err'?' err':mode==='demo'?' busy':'');
+  txt.textContent = mode==='busy' ? 'Saving…' : mode==='err' ? 'Could not save' : mode==='demo' ? 'Example data' : 'Synced';
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function normalizeTask(t){
+  return { id:t.ID, title:t.Title, area:t.Area, type:t.Type, date:onlyDate(t.Date), time:t.Time||'', notes:t.Notes||'', status:t.Status||'not done' };
+}
+function normalizeMeal(m){
+  return { id:m.ID, date:onlyDate(m.Date), mealType:m['Meal Type'], meal:m.Meal, notes:m.Notes||'' };
+}
+function normalizeFocus(f){
+  return { id:f.ID, area:f.Area||'', date:onlyDate(f.Date), duration:Number(f.Minutes||0), notes:f.Notes||'' };
+}
+function normalizeShopping(s){
+  return { id:s.ID, item:s.Item, checked: String(s.Checked).toLowerCase()==='true' };
+}
+function normalizeFavorite(f){
+  return { id:f.ID, meal:f.Meal, notes:f.Notes||'' };
+}
+
+async function loadAll(){
+  setSync('busy');
+  try{
+    const data = await api('list');
+    if(data.error) throw new Error(data.error);
+    state.tasks = (data.tasks||[]).map(normalizeTask);
+    state.meals = (data.meals||[]).map(normalizeMeal);
+    state.focus = (data.focus||[]).map(normalizeFocus);
+    state.shopping = (data.shopping||[]).map(normalizeShopping);
+    state.favorites = (data.favorites||[]).map(normalizeFavorite);
+    document.getElementById('demoBanner').style.display='none';
+    setSync('ok');
+  }catch(err){
+    state.tasks = DEMO_TASKS.slice();
+    state.meals = DEMO_MEALS.slice();
+    state.focus = [];
+    state.shopping = [{id:'sh1',item:'Fish for Wednesday dinner',checked:false},{id:'sh2',item:'Kids\' school snacks',checked:true}];
+    state.favorites = [{id:'fv1',meal:'Bak kut teh',notes:'Kids always ask for this'},{id:'fv2',meal:'Steamboat night',notes:'Good for a busy week'}];
+    document.getElementById('demoBanner').style.display='';
+    setSync('demo');
+  }
+  renderLegend();
+  renderAll();
+}
+
+/* ---------- legend ---------- */
+function renderLegend(){
+  const el=document.getElementById('legend');
+  el.innerHTML = AREAS.map(a=>`<span class="legend-item"><span class="dot" style="background:var(${a.var})"></span>${a.id}</span>`).join('');
+}
+
+/* ---------- top-level render dispatch ---------- */
+function renderAll(){
+  document.getElementById('todayLabel').textContent = fmt(new Date(), {weekday:'long', day:'numeric', month:'long'});
+  document.getElementById('tasksPanel').style.display = state.tab==='tasks' ? '' : 'none';
+  document.getElementById('mealsPanel').style.display = state.tab==='meals' ? '' : 'none';
+  if(state.tab==='tasks'){
+    renderTaskNav();
+    if(state.view==='agenda') renderAgenda();
+    else if(state.view==='week') renderWeekGrid();
+    else if(state.view==='month') renderMonthGrid();
+    else renderBrainDump();
+  } else {
+    renderMeals();
+  }
+}
+
+function renderBrainDump(){
+  const el=document.getElementById('tasksContent');
+  const items = state.tasks.filter(t=>!t.date);
+  let html = `<div class="empty-note" style="padding:0 0 14px;">Anything on your mind — no date needed. Add it here now, then tap ✎ to give it a date whenever you're ready to schedule it.</div>`;
+  if(!items.length){
+    html += `<div class="empty-note">Nothing here yet.</div>`;
+  } else {
+    html += items.map(cardHTML).join('');
+  }
+  el.innerHTML = html;
+  attachCardHandlers(el);
+}
+
+function renderTaskNav(){
+  const show = state.view==='week' || state.view==='month';
+  document.getElementById('prevBtn').style.display = show?'':'none';
+  document.getElementById('nextBtn').style.display = show?'':'none';
+  document.getElementById('rangeLabel').style.display = show?'':'none';
+  document.getElementById('todayBtn').style.display = show?'':'none';
+  if(!show) return;
+  if(state.view==='week'){
+    const start=state.weekAnchor, end=addDays(start,6);
+    document.getElementById('rangeLabel').textContent = fmt(start,{day:'numeric',month:'short'})+' – '+fmt(end,{day:'numeric',month:'short'});
+  } else {
+    document.getElementById('rangeLabel').textContent = fmt(state.monthAnchor,{month:'long',year:'numeric'});
+  }
+}
+
+/* ---------- AGENDA VIEW ---------- */
+function renderAgenda(){
+  const el=document.getElementById('tasksContent');
+  const today=todayStr();
+  const overdue = state.tasks.filter(t=>t.type!=='event' && t.status!=='done' && t.date && t.date<today).sort((a,b)=>a.date.localeCompare(b.date));
+  const upcoming = state.tasks.filter(t=>t.date>=today || (t.status==='done' && t.date>=addDays(new Date(today+'T00:00:00'),-2) && false));
+  const upcomingFiltered = state.tasks.filter(t=>t.date>=today).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
+
+  let html='';
+  if(overdue.length){
+    html += `<div class="agenda-group"><div class="agenda-group-title overdue">Overdue</div>`;
+    html += overdue.map(cardHTML).join('');
+    html += `</div>`;
+  }
+  if(upcomingFiltered.length===0 && overdue.length===0){
+    html += `<div class="empty-note">Nothing on the horizon. Tap “+ Add” to plan something.</div>`;
+  } else {
+    const groups={};
+    upcomingFiltered.forEach(t=>{ (groups[t.date]=groups[t.date]||[]).push(t); });
+    const dates=Object.keys(groups).sort();
+    html += `<div class="agenda-group">`;
+    dates.slice(0,30).forEach(d=>{
+      const dObj=toDateObj(d);
+      const label = d===today ? 'Today · '+fmt(dObj,{day:'numeric',month:'short'}) : fmt(dObj,{weekday:'long',day:'numeric',month:'short'});
+      html += `<div class="agenda-day"><div class="agenda-day-header">${label}</div>`;
+      html += groups[d].map(cardHTML).join('');
+      html += `</div>`;
+    });
+    html += `</div>`;
+  }
+  el.innerHTML = html;
+  attachCardHandlers(el);
+}
+
+function cardHTML(t){
+  const color = areaColor(t.area);
+  const done = t.status==='done';
+  const isEvent = t.type==='event';
+  const marker = isEvent
+    ? `<span class="event-marker" style="--card-color:${color}"></span>`
+    : `<button class="task-check ${done?'done':''}" data-action="toggle" data-id="${t.id}">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </button>`;
+  return `
+  <div class="task-card ${done?'done':''} ${isEvent?'event-card':''}" style="--card-color:${color}" data-id="${t.id}">
+    ${marker}
+    <div class="task-body">
+      <div class="task-title">${escapeHTML(t.title)}</div>
+      <div class="task-meta">
+        <span class="area-tag" style="--card-color:${color}">${t.area}</span>
+        <span>${t.type==='deadline'?'Deadline':isEvent?'Event':'Task'}</span>
+        ${t.time?`<span>${t.time}</span>`:''}
+      </div>
+      ${t.notes?`<div class="task-notes">${escapeHTML(t.notes)}</div>`:''}
+    </div>
+    <div class="task-actions">
+      <button class="icon-btn" data-action="edit" data-id="${t.id}" title="Edit / reschedule">✎</button>
+    </div>
+  </div>`;
+}
+function escapeHTML(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+function attachCardHandlers(container){
+  container.querySelectorAll('[data-action="toggle"]').forEach(btn=>{
+    btn.onclick = ()=>toggleTask(btn.dataset.id);
+  });
+  container.querySelectorAll('[data-action="edit"]').forEach(btn=>{
+    btn.onclick = ()=>openTaskModal(state.tasks.find(t=>t.id===btn.dataset.id));
+  });
+}
+
+function toggleTask(id){
+  const t=state.tasks.find(t=>t.id===id);
+  if(!t) return;
+  const prev=t.status;
+  t.status = prev==='done' ? 'not done' : 'done';
+  renderAll();
+  setSync('busy');
+  api('updateTask',{id, status:t.status}).then(res=>{
+    if(res.error){ t.status=prev; renderAll(); setSync('err'); showToast('Could not save that change.'); }
+    else setSync('ok');
+  }).catch(()=>{ t.status=prev; renderAll(); setSync('err'); });
+}
+
+/* ---------- WEEK VIEW ---------- */
+function renderWeekGrid(){
+  const el=document.getElementById('tasksContent');
+  const start=state.weekAnchor;
+  const today=todayStr();
+  let html = `<div class="grid-wrap"><div class="week-grid">`;
+  for(let i=0;i<7;i++){
+    const d=addDays(start,i);
+    const dStr=isoDate(d);
+    const dayTasks = state.tasks.filter(t=>t.date===dStr).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    html += `<div class="day-col ${dStr===today?'today':''}" data-date="${dStr}">
+      <div class="day-col-head">${fmt(d,{weekday:'short'})}<span class="num">${d.getDate()}</span></div>
+      ${dayTasks.map(t=>miniCardHTML(t)).join('')}
+    </div>`;
+  }
+  html += `</div></div>`;
+  el.innerHTML=html;
+  attachMiniCardHandlers(el);
+  enableDragDrop(el);
+}
+
+/* ---------- MONTH VIEW ---------- */
+function renderMonthGrid(){
+  const el=document.getElementById('tasksContent');
+  const anchor=state.monthAnchor;
+  const firstOfMonth=new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+  const gridStart=startOfWeek(firstOfMonth);
+  const today=todayStr();
+  let html = `<div class="grid-wrap"><div class="month-grid">`;
+  for(let i=0;i<42;i++){
+    const d=addDays(gridStart,i);
+    const dStr=isoDate(d);
+    const otherMonth = d.getMonth()!==anchor.getMonth();
+    const dayTasks = state.tasks.filter(t=>t.date===dStr).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    html += `<div class="day-col ${dStr===today?'today':''} ${otherMonth?'other-month':''}" data-date="${dStr}">
+      <div class="day-col-head"><span class="num">${d.getDate()}</span></div>
+      ${dayTasks.map(t=>miniCardHTML(t)).join('')}
+    </div>`;
+    if(i>=34 && d.getMonth()!==anchor.getMonth() && (i+1)%7===0) { /* allow finishing current row */ }
+  }
+  html += `</div></div>`;
+  el.innerHTML=html;
+  attachMiniCardHandlers(el);
+  enableDragDrop(el);
+}
+
+function miniCardHTML(t){
+  const color=areaColor(t.area);
+  const done=t.status==='done';
+  const isEvent=t.type==='event';
+  return `<div class="mini-card ${done?'done':''} ${isEvent?'mini-event':''}" style="--card-color:${color}" data-id="${t.id}">
+    <b>${isEvent?'◆ ':''}${escapeHTML(t.title)}</b>${t.time?t.time:t.type==='deadline'?'Deadline':isEvent?'Event':''}
+  </div>`;
+}
+function attachMiniCardHandlers(container){
+  container.querySelectorAll('.mini-card').forEach(card=>{
+    card.addEventListener('click', (e)=>{
+      if(card._dragged) { card._dragged=false; return; }
+      openTaskModal(state.tasks.find(t=>t.id===card.dataset.id));
+    });
+  });
+}
+
+/* ---------- DRAG TO RESCHEDULE (pointer-based, works mouse + touch) ---------- */
+function enableDragDrop(container){
+  container.querySelectorAll('.mini-card').forEach(card=>{
+    let startX,startY,dragging=false,ghost=null,currentTarget=null;
+    card.addEventListener('pointerdown', e=>{
+      startX=e.clientX; startY=e.clientY; dragging=false;
+      card.setPointerCapture(e.pointerId);
+      const move=(ev)=>{
+        const dx=ev.clientX-startX, dy=ev.clientY-startY;
+        if(!dragging && Math.hypot(dx,dy)>8){
+          dragging=true;
+          card._dragged=true;
+          ghost=card.cloneNode(true);
+          ghost.classList.add('drag-ghost');
+          document.body.appendChild(ghost);
+          card.style.opacity='0.35';
+        }
+        if(dragging){
+          ev.preventDefault();
+          ghost.style.left=ev.clientX+'px';
+          ghost.style.top=ev.clientY+'px';
+          if(currentTarget) currentTarget.classList.remove('drop-target');
+          const el=document.elementFromPoint(ev.clientX, ev.clientY);
+          currentTarget = el ? el.closest('.day-col') : null;
+          if(currentTarget) currentTarget.classList.add('drop-target');
+        }
+      };
+      const up=(ev)=>{
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', up);
+        if(dragging){
+          card.style.opacity='';
+          if(ghost) ghost.remove();
+          if(currentTarget){
+            currentTarget.classList.remove('drop-target');
+            const newDate=currentTarget.dataset.date;
+            const t=state.tasks.find(t=>t.id===card.dataset.id);
+            if(t && newDate && newDate!==t.date){ rescheduleTask(t.id, newDate); }
+          }
+        }
+      };
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up);
+    });
+  });
+}
+function rescheduleTask(id, newDate){
+  const t=state.tasks.find(t=>t.id===id);
+  const prev=t.date;
+  t.date=newDate;
+  renderAll();
+  setSync('busy');
+  api('updateTask',{id,date:newDate}).then(res=>{
+    if(res.error){ t.date=prev; renderAll(); setSync('err'); showToast('Could not move that — try again.'); }
+    else { setSync('ok'); showToast('Moved to '+fmt(toDateObj(newDate),{day:'numeric',month:'short'})); }
+  }).catch(()=>{ t.date=prev; renderAll(); setSync('err'); });
+}
+
+/* ---------- MEALS ---------- */
+function renderMeals(){
+  const start=state.mealAnchor, end=addDays(start,6);
+  document.getElementById('mealRangeLabel').textContent = fmt(start,{day:'numeric',month:'short'})+' – '+fmt(end,{day:'numeric',month:'short'});
+  const el=document.getElementById('mealTable');
+  let html = `<div></div>`;
+  for(let i=0;i<7;i++){
+    const d=addDays(start,i);
+    html += `<div class="meal-day-head">${fmt(d,{weekday:'short'})}<span class="num">${d.getDate()}</span></div>`;
+  }
+  ['Lunch','Dinner'].forEach(mealType=>{
+    html += `<div class="meal-row-label">${mealType}</div>`;
+    for(let i=0;i<7;i++){
+      const d=addDays(start,i);
+      const dStr=isoDate(d);
+      const m = state.meals.find(m=>m.date===dStr && m.mealType===mealType);
+      html += `<div class="meal-cell ${m?'filled':''}" data-date="${dStr}" data-type="${mealType}" data-id="${m?m.id:''}">
+        ${m ? `<b>${escapeHTML(m.meal)}</b>${m.notes?`<span class="mnotes">${escapeHTML(m.notes)}</span>`:''}` : `<span class="placeholder">+ Add</span>`}
+      </div>`;
+    }
+  });
+  el.innerHTML=html;
+  el.querySelectorAll('.meal-cell').forEach(cell=>{
+    cell.onclick = ()=>{
+      const id=cell.dataset.id;
+      const existing = id ? state.meals.find(m=>m.id===id) : null;
+      openMealModal(existing, cell.dataset.date, cell.dataset.type);
+    };
+  });
+  renderShopping();
+  renderFavorites();
+}
+
+/* ---------- SHOPPING LIST ---------- */
+function renderShopping(){
+  const el=document.getElementById('shoppingList');
+  if(!el) return;
+  if(!state.shopping.length){ el.innerHTML=`<div class="empty-note">Nothing on the list.</div>`; return; }
+  el.innerHTML = state.shopping.map(s=>`
+    <div class="shopping-item ${s.checked?'checked':''}" data-id="${s.id}">
+      <button class="task-check ${s.checked?'done':''}" data-action="toggleShop" data-id="${s.id}" style="--card-color:var(--c-family)">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <span class="item-text">${escapeHTML(s.item)}</span>
+      <button class="icon-btn" data-action="deleteShop" data-id="${s.id}">✕</button>
+    </div>`).join('');
+  el.querySelectorAll('[data-action="toggleShop"]').forEach(b=>b.onclick=()=>toggleShopping(b.dataset.id));
+  el.querySelectorAll('[data-action="deleteShop"]').forEach(b=>b.onclick=()=>deleteShopping(b.dataset.id));
+}
+function toggleShopping(id){
+  const s=state.shopping.find(s=>s.id===id); if(!s) return;
+  const prev=s.checked; s.checked=!s.checked; renderShopping();
+  setSync('busy');
+  api('updateShopping',{id, checked:s.checked}).then(res=>{
+    if(res.error){ s.checked=prev; renderShopping(); setSync('err'); } else setSync('ok');
+  }).catch(()=>{ s.checked=prev; renderShopping(); setSync('err'); });
+}
+function deleteShopping(id){
+  const idx=state.shopping.findIndex(s=>s.id===id); const removed=state.shopping[idx];
+  state.shopping.splice(idx,1); renderShopping();
+  setSync('busy');
+  api('deleteShopping',{id}).then(res=>{
+    if(res.error){ state.shopping.splice(idx,0,removed); renderShopping(); setSync('err'); } else setSync('ok');
+  }).catch(()=>{ state.shopping.splice(idx,0,removed); renderShopping(); setSync('err'); });
+}
+function addShoppingItem(){
+  const input=document.getElementById('shoppingInput');
+  const val=input.value.trim();
+  if(!val) return;
+  input.value='';
+  setSync('busy');
+  api('addShopping',{item:val}).then(res=>{
+    if(res.error){ setSync('err'); showToast('Could not add.'); return; }
+    state.shopping.push({id:res.id, item:val, checked:false});
+    setSync('ok'); renderShopping();
+  }).catch(()=>{ setSync('err'); showToast('Could not add.'); });
+}
+
+/* ---------- FAVORITE MEALS ---------- */
+function renderFavorites(){
+  const el=document.getElementById('favoritesList');
+  if(!el) return;
+  if(!state.favorites.length){ el.innerHTML=`<div class="empty-note">No favorites saved yet.</div>`; return; }
+  el.innerHTML = state.favorites.map(f=>`
+    <div class="favorite-card" data-id="${f.id}">
+      <button class="icon-btn" data-action="deleteFav" data-id="${f.id}" style="position:absolute;top:8px;right:8px;">✕</button>
+      <b>${escapeHTML(f.meal)}</b>
+      ${f.notes?`<div class="task-notes">${escapeHTML(f.notes)}</div>`:''}
+    </div>`).join('');
+  el.querySelectorAll('[data-action="deleteFav"]').forEach(b=>b.onclick=()=>deleteFavorite(b.dataset.id));
+}
+function deleteFavorite(id){
+  const idx=state.favorites.findIndex(f=>f.id===id); const removed=state.favorites[idx];
+  state.favorites.splice(idx,1); renderFavorites();
+  setSync('busy');
+  api('deleteFavorite',{id}).then(res=>{
+    if(res.error){ state.favorites.splice(idx,0,removed); renderFavorites(); setSync('err'); } else setSync('ok');
+  }).catch(()=>{ state.favorites.splice(idx,0,removed); renderFavorites(); setSync('err'); });
+}
+function addFavoriteMeal(){
+  const mealInput=document.getElementById('favoriteMealInput');
+  const notesInput=document.getElementById('favoriteNotesInput');
+  const meal=mealInput.value.trim();
+  if(!meal) return;
+  const notes=notesInput.value.trim();
+  mealInput.value=''; notesInput.value='';
+  setSync('busy');
+  api('addFavorite',{meal, notes}).then(res=>{
+    if(res.error){ setSync('err'); showToast('Could not add.'); return; }
+    state.favorites.push({id:res.id, meal, notes});
+    setSync('ok'); renderFavorites();
+  }).catch(()=>{ setSync('err'); showToast('Could not add.'); });
+}
+
+/* ---------- MODALS ---------- */
+function openTaskModal(task, prefillDate){
+  const isEdit = !!task;
+  const t = task || {title:'',area:'Personal',type:'task',date:(prefillDate!==undefined?prefillDate:isoDate(new Date())),time:'',notes:''};
+  const box=document.getElementById('modalBox');
+  box.innerHTML = `
+    <h3>${isEdit?'Edit':'New'} task</h3>
+    <div class="field"><label>Title</label><input id="f_title" value="${escapeHTML(t.title)}" placeholder="What needs doing?"></div>
+    <div class="field"><label>Life area</label>
+      <div class="area-picker" id="f_area_picker">
+        ${AREAS.map(a=>`<div class="area-chip ${a.id===t.area?'selected':''}" style="--chip-color:var(${a.var})" data-area="${a.id}">
+          <span class="dot" style="background:var(${a.var})"></span>${a.id}
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="row-2">
+      <div class="field"><label>Type</label>
+        <select id="f_type">
+          <option value="task" ${t.type==='task'?'selected':''}>Task</option>
+          <option value="deadline" ${t.type==='deadline'?'selected':''}>Deadline</option>
+          <option value="event" ${t.type==='event'?'selected':''}>Event</option>
+        </select>
+      </div>
+      <div class="field"><label>Date</label><input type="date" id="f_date" value="${t.date}"></div>
+    </div>
+    <div class="field"><label>Time (optional)</label><input type="time" id="f_time" value="${t.time}"></div>
+    <div class="field"><label>Notes (optional)</label><textarea id="f_notes">${escapeHTML(t.notes)}</textarea></div>
+    <div class="modal-actions">
+      <div>${isEdit?`<button class="btn-danger" id="f_delete">Delete</button>`:''}</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" id="f_cancel">Cancel</button>
+        <button class="btn-primary" id="f_save">Save</button>
+      </div>
+    </div>
+  `;
+  let selectedArea = t.area;
+  box.querySelectorAll('.area-chip').forEach(chip=>{
+    chip.onclick=()=>{ box.querySelectorAll('.area-chip').forEach(c=>c.classList.remove('selected')); chip.classList.add('selected'); selectedArea=chip.dataset.area; };
+  });
+  box.querySelector('#f_cancel').onclick = closeModal;
+  if(isEdit) box.querySelector('#f_delete').onclick = ()=>{ deleteTask(t.id); closeModal(); };
+  box.querySelector('#f_save').onclick = ()=>{
+    const payload = {
+      title: box.querySelector('#f_title').value.trim(),
+      area: selectedArea,
+      type: box.querySelector('#f_type').value,
+      date: box.querySelector('#f_date').value,
+      time: box.querySelector('#f_time').value,
+      notes: box.querySelector('#f_notes').value.trim(),
+    };
+    if(!payload.title){ showToast('Give it a title.'); return; }
+    if(isEdit) saveTaskEdit(t.id, payload); else createTask(payload);
+    closeModal();
+  };
+  openModal();
+}
+
+function createTask(payload){
+  setSync('busy');
+  api('addTask', payload).then(res=>{
+    if(res.error){ setSync('err'); showToast('Could not add — try again.'); return; }
+    state.tasks.push(normalizeTask({ID:res.id, Title:payload.title, Area:payload.area, Type:payload.type, Date:payload.date, Time:payload.time, Notes:payload.notes, Status:'not done'}));
+    setSync('ok'); showToast('Added.');
+    renderAll();
+  }).catch(()=>{ setSync('err'); showToast('Could not add — try again.'); });
+}
+function saveTaskEdit(id, payload){
+  const t=state.tasks.find(t=>t.id===id);
+  const prev={...t};
+  Object.assign(t, payload);
+  renderAll();
+  setSync('busy');
+  api('updateTask',{id, ...payload}).then(res=>{
+    if(res.error){ Object.assign(t,prev); renderAll(); setSync('err'); showToast('Could not save.'); }
+    else { setSync('ok'); showToast('Saved.'); }
+  }).catch(()=>{ Object.assign(t,prev); renderAll(); setSync('err'); });
+}
+function deleteTask(id){
+  const idx=state.tasks.findIndex(t=>t.id===id);
+  const removed=state.tasks[idx];
+  state.tasks.splice(idx,1);
+  renderAll();
+  setSync('busy');
+  api('deleteTask',{id}).then(res=>{
+    if(res.error){ state.tasks.splice(idx,0,removed); renderAll(); setSync('err'); showToast('Could not delete.'); }
+    else { setSync('ok'); showToast('Deleted.'); }
+  }).catch(()=>{ state.tasks.splice(idx,0,removed); renderAll(); setSync('err'); });
+}
+
+function openMealModal(meal, date, mealType){
+  const isEdit=!!meal;
+  const m = meal || {date, mealType, meal:'', notes:''};
+  const box=document.getElementById('modalBox');
+  box.innerHTML = `
+    <h3>${fmt(toDateObj(m.date),{weekday:'long',day:'numeric',month:'short'})} · ${m.mealType}</h3>
+    <div class="field"><label>Meal</label><input id="m_meal" value="${escapeHTML(m.meal)}" placeholder="e.g. Steamed fish + veg"></div>
+    <div class="field"><label>Notes (optional)</label><textarea id="m_notes">${escapeHTML(m.notes)}</textarea></div>
+    <div class="modal-actions">
+      <div>${isEdit?`<button class="btn-danger" id="m_delete">Delete</button>`:''}</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" id="m_cancel">Cancel</button>
+        <button class="btn-primary" id="m_save">Save</button>
+      </div>
+    </div>
+  `;
+  box.querySelector('#m_cancel').onclick=closeModal;
+  if(isEdit) box.querySelector('#m_delete').onclick=()=>{ deleteMeal(m.id); closeModal(); };
+  box.querySelector('#m_save').onclick=()=>{
+    const payload={ date:m.date, mealType:m.mealType, meal:box.querySelector('#m_meal').value.trim(), notes:box.querySelector('#m_notes').value.trim() };
+    if(!payload.meal){ showToast("Add what's for this meal."); return; }
+    if(isEdit) saveMealEdit(m.id, payload); else createMeal(payload);
+    closeModal();
+  };
+  openModal();
+}
+function createMeal(payload){
+  setSync('busy');
+  api('addMeal', payload).then(res=>{
+    if(res.error){ setSync('err'); showToast('Could not add — try again.'); return; }
+    state.meals.push(normalizeMeal({ID:res.id, Date:payload.date, 'Meal Type':payload.mealType, Meal:payload.meal, Notes:payload.notes}));
+    setSync('ok'); renderAll();
+  }).catch(()=>{ setSync('err'); });
+}
+function saveMealEdit(id, payload){
+  const m=state.meals.find(m=>m.id===id);
+  const prev={...m};
+  Object.assign(m, payload);
+  renderAll();
+  setSync('busy');
+  api('updateMeal',{id, ...payload}).then(res=>{
+    if(res.error){ Object.assign(m,prev); renderAll(); setSync('err'); }
+    else setSync('ok');
+  }).catch(()=>{ Object.assign(m,prev); renderAll(); setSync('err'); });
+}
+function deleteMeal(id){
+  const idx=state.meals.findIndex(m=>m.id===id);
+  const removed=state.meals[idx];
+  state.meals.splice(idx,1);
+  renderAll();
+  setSync('busy');
+  api('deleteMeal',{id}).then(res=>{
+    if(res.error){ state.meals.splice(idx,0,removed); renderAll(); setSync('err'); }
+    else setSync('ok');
+  }).catch(()=>{ state.meals.splice(idx,0,removed); renderAll(); setSync('err'); });
+}
+
+function openModal(){ document.getElementById('modalOverlay').classList.add('open'); }
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+
+/* ---------- WIRING ---------- */
+document.getElementById('tabToggle').addEventListener('click', e=>{
+  const btn=e.target.closest('button[data-tab]'); if(!btn) return;
+  document.querySelectorAll('#tabToggle button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  state.tab=btn.dataset.tab;
+  renderAll();
+});
+document.getElementById('viewToggle').addEventListener('click', e=>{
+  const btn=e.target.closest('button[data-view]'); if(!btn) return;
+  document.querySelectorAll('#viewToggle button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  state.view=btn.dataset.view;
+  renderAll();
+});
+function openTimerModal(){
+  const box=document.getElementById('modalBox');
+  const todayFocus = state.focus.filter(f=>f.date===todayStr());
+  const totalMin = todayFocus.reduce((s,f)=>s+f.duration,0);
+  box.innerHTML = `
+    <h3>Deep Work Timer</h3>
+    <div style="text-align:center;font-family:'Fraunces',serif;font-size:42px;margin:14px 0 18px;" id="timerDisplay">${fmtDuration(timerElapsedMs())}</div>
+    <div class="field"><label>Area (optional)</label>
+      <div class="area-picker" id="timer_area_picker">
+        ${AREAS.map(a=>`<div class="area-chip ${a.id===timer.area?'selected':''}" style="--chip-color:var(${a.var})" data-area="${a.id}"><span class="dot" style="background:var(${a.var})"></span>${a.id}</div>`).join('')}
+      </div>
+    </div>
+    <div class="field"><label>What are you working on? (optional)</label><textarea id="timer_notes" placeholder="e.g. FY25 audit prep"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="timer_reset">Reset</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" id="timer_toggle">${timer.running?'Pause':'Start'}</button>
+        <button class="btn-primary" id="timer_save">Save session</button>
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:12px;color:var(--ink-soft);">Today: ${todayFocus.length} session${todayFocus.length===1?'':'s'}, ${totalMin} min</div>
+  `;
+  box.querySelectorAll('.area-chip').forEach(chip=>{
+    chip.onclick=()=>{ box.querySelectorAll('.area-chip').forEach(c=>c.classList.remove('selected')); chip.classList.add('selected'); timer.area=chip.dataset.area; };
+  });
+  box.querySelector('#timer_toggle').onclick=()=>{
+    if(timer.running){ timer.accumMs += Date.now()-timer.startTs; timer.running=false; }
+    else { timer.startTs=Date.now(); timer.running=true; }
+    box.querySelector('#timer_toggle').textContent = timer.running?'Pause':'Start';
+  };
+  box.querySelector('#timer_reset').onclick=()=>{
+    timer.running=false; timer.accumMs=0;
+    document.getElementById('timerDisplay').textContent = fmtDuration(0);
+    box.querySelector('#timer_toggle').textContent = 'Start';
+  };
+  box.querySelector('#timer_save').onclick=()=>{
+    const ms = timerElapsedMs();
+    const minutes = Math.round(ms/60000);
+    if(minutes < 1){ showToast('Session is too short to log yet.'); return; }
+    const payload = { area: timer.area, date: todayStr(), duration: minutes, notes: box.querySelector('#timer_notes').value.trim() };
+    setSync('busy');
+    api('addFocus', payload).then(res=>{
+      if(res.error){ setSync('err'); showToast('Could not save that session.'); return; }
+      state.focus.push(normalizeFocus({ID:res.id, Area:payload.area, Date:payload.date, Minutes:payload.duration, Notes:payload.notes}));
+      setSync('ok'); showToast('Logged '+minutes+' min of deep work.');
+    }).catch(()=>{ setSync('err'); showToast('Could not save that session.'); });
+    timer.running=false; timer.accumMs=0;
+    closeModal();
+  };
+  openModal();
+}
+document.getElementById('timerBtn').onclick = openTimerModal;
+
+document.getElementById('addBtn').onclick=()=>{
+  if(state.tab==='tasks') openTaskModal(null, state.view==='braindump' ? '' : undefined);
+  else openMealModal(null, isoDate(new Date()), 'Lunch');
+};
+document.getElementById('modalOverlay').addEventListener('click', e=>{ if(e.target.id==='modalOverlay') closeModal(); });
+
+document.getElementById('prevBtn').onclick=()=>{
+  if(state.view==='week') state.weekAnchor=addDays(state.weekAnchor,-7);
+  else { state.monthAnchor=new Date(state.monthAnchor.getFullYear(), state.monthAnchor.getMonth()-1, 1); }
+  renderAll();
+};
+document.getElementById('nextBtn').onclick=()=>{
+  if(state.view==='week') state.weekAnchor=addDays(state.weekAnchor,7);
+  else { state.monthAnchor=new Date(state.monthAnchor.getFullYear(), state.monthAnchor.getMonth()+1, 1); }
+  renderAll();
+};
+document.getElementById('todayBtn').onclick=()=>{
+  state.weekAnchor=startOfWeek(new Date());
+  state.monthAnchor=new Date();
+  renderAll();
+};
+document.getElementById('mealPrevBtn').onclick=()=>{ state.mealAnchor=addDays(state.mealAnchor,-7); renderAll(); };
+document.getElementById('mealNextBtn').onclick=()=>{ state.mealAnchor=addDays(state.mealAnchor,7); renderAll(); };
+document.getElementById('mealTodayBtn').onclick=()=>{ state.mealAnchor=startOfWeek(new Date()); renderAll(); };
+
+document.getElementById('shoppingAddBtn').onclick=addShoppingItem;
+document.getElementById('shoppingInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addShoppingItem(); });
+document.getElementById('favoriteAddBtn').onclick=addFavoriteMeal;
+document.getElementById('favoriteNotesInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addFavoriteMeal(); });
+document.getElementById('favoriteMealInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addFavoriteMeal(); });
+
+loadAll();
+</script>
+</body>
+</html>
